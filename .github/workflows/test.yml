@@ -1,0 +1,101 @@
+name: Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    outputs:
+      swaps: ${{ steps.get-stats.outputs.swaps }}
+      fails: ${{ steps.get-stats.outputs.fails }}
+      profit: ${{ steps.get-stats.outputs.profit }}
+      transferred: ${{ steps.get-stats.outputs.transferred }}
+    env:
+      DEFAULT_RPC: ${{ secrets.DEFAULT_RPC }}
+      GORBAGANA_WALLET_PRIVATE_KEY: ${{ secrets.GORBAGANA_WALLET_PRIVATE_KEY }}
+      MAIN_WALLET_ADDRESS: ${{ secrets.MAIN_WALLET_ADDRESS }}
+      DEBUG: false
+
+    steps:
+      - uses: actions/checkout@v4.1.1
+        with:
+          repository: ${{ secrets.BOT_REPO_URL }}
+          token: ${{ secrets.GH_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - run: yarn install --frozen-lockfile
+
+      - uses: actions/cache@v4
+        id: tokens-cache
+        with:
+          path: temp
+          key: gor-tokens-${{ hashFiles('tokens.json') }}
+          restore-keys: gor-tokens-
+
+      - run: yarn tokens:discover:from-config
+
+      - run: yarn trade
+
+      - run: |
+          echo "swaps=$(cat temp/trades.json | jq -r '.swaps')" >> $GITHUB_OUTPUT
+          echo "fails=$(cat temp/trades.json | jq -r '.fails')" >> $GITHUB_OUTPUT
+          echo "profit=$(cat temp/trades.json | jq -r '.profit')" >> $GITHUB_OUTPUT
+          echo "transferred=$(cat temp/trades.json | jq -r '.transferred')" >> $GITHUB_OUTPUT
+        if: always()
+        id: get-stats
+
+      - run: |
+          cat temp/trades.json
+          yarn prepare:wallet
+          swaps="${{ steps.get-stats.outputs.swaps }}"
+          if [[ -z "$swaps" || "$swaps" == "0" ]]; then
+            exit 1
+          fi
+        if: always()
+
+  restart:
+    runs-on: ubuntu-latest
+    needs: test
+    if: always()
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Get status
+        run: |
+          swaps="${{ needs.test.outputs.swaps }}"
+          fails="${{ needs.test.outputs.fails }}"
+          profit="${{ needs.test.outputs.profit }}"
+          transferred="${{ needs.test.outputs.transferred }}"
+          chat_id="${{ secrets.TELEGRAM_CHAT_ID }}"
+          api_url="https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
+          job_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
+          if [[ -n "$transferred" && "$transferred" != "null" && "$transferred" != "0" ]]; then
+            text="<a href=\"https://trashscan.io/address/${{ secrets.MAIN_WALLET_ADDRESS }}\">${transferred} GOR transferred</a>"
+            curl -X POST "$api_url" -d "chat_id=$chat_id" -d "parse_mode=HTML" -d "disable_web_page_preview=true" -d "text=$text"
+          fi
+
+          if [[ -n "$fails" && "$fails" -gt 100 ]]; then
+            text="<a href=\"$job_url\">${fails} swaps failed</a>"
+            curl -X POST "$api_url" -d "chat_id=$chat_id" -d "parse_mode=HTML" -d "disable_web_page_preview=true" -d "text=$text"
+          fi
+
+          if [[ -z "$swaps" || -z "$profit" ]]; then
+            text="<a href=\"$job_url\">Something went wrong</a>"
+            curl -X POST "$api_url" -d "chat_id=$chat_id" -d "parse_mode=HTML" -d "disable_web_page_preview=true" -d "text=$text"
+          fi
+
+          if [[ "$swaps" != "0" ]]; then
+            text="<a href=\"$job_url\">${profit} GOR mined</a>"
+            curl -X POST "$api_url" -d "chat_id=$chat_id" -d "parse_mode=HTML" -d "disable_web_page_preview=true" -d "text=$text"
+          fi
+      - name: Restart
+        run: gh workflow run test.yml
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
