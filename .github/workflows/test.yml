@@ -11,6 +11,7 @@ jobs:
       fails: ${{ steps.get-stats.outputs.fails }}
       profit: ${{ steps.get-stats.outputs.profit }}
       transferred: ${{ steps.get-stats.outputs.transferred }}
+      arbs: ${{ steps.get-stats.outputs.arbs }}
     env:
       DEFAULT_RPC: ${{ secrets.DEFAULT_RPC }}
       GORBAGANA_WALLET_PRIVATE_KEY: ${{ secrets.GORBAGANA_WALLET_PRIVATE_KEY }}
@@ -46,6 +47,7 @@ jobs:
           echo "fails=$(cat temp/trades.json | jq -r '.fails')" >> $GITHUB_OUTPUT
           echo "profit=$(cat temp/trades.json | jq -r '.profit')" >> $GITHUB_OUTPUT
           echo "transferred=$(cat temp/trades.json | jq -r '.transferred')" >> $GITHUB_OUTPUT
+          echo "arbs=$(cat temp/trades.json | jq -r '.arbs // [] | join(", ")')" >> $GITHUB_OUTPUT
         if: always()
         id: get-stats
 
@@ -71,6 +73,7 @@ jobs:
           fails="${{ needs.test.outputs.fails }}"
           profit="${{ needs.test.outputs.profit }}"
           transferred="${{ needs.test.outputs.transferred }}"
+          arbs="${{ needs.test.outputs.arbs }}"
           chat_id="${{ secrets.TELEGRAM_CHAT_ID }}"
           api_url="https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
           job_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
@@ -81,25 +84,28 @@ jobs:
           else
             # Build combined message
             text=""
-            
+
             if [[ "$swaps" != "0" ]]; then
               text+="<a href=\"$job_url\">${profit} GOR mined</a>"
+              if [[ -n "$arbs" && "$arbs" != "null" ]]; then
+                text+=" ($arbs)"
+              fi
             fi
-            
+
             if [[ -n "$transferred" && "$transferred" != "null" && "$transferred" != "0" ]]; then
               if [[ -n "$text" ]]; then
                 text+=$'\n'
               fi
               text+="<a href=\"https://trashscan.io/address/${{ secrets.MAIN_WALLET_ADDRESS }}\">${transferred} GOR transferred</a>"
             fi
-            
+
             if [[ -n "$fails" && "$fails" -gt 100 ]]; then
               if [[ -n "$text" ]]; then
                 text+=$'\n'
               fi
               text+="<a href=\"$job_url\">${fails} swaps failed</a>"
             fi
-            
+
             if [[ -n "$text" ]]; then
               curl -X POST "$api_url" -d "chat_id=$chat_id" -d "parse_mode=HTML" -d "disable_web_page_preview=true" -d "text=$text"
             fi
