@@ -14,6 +14,7 @@ jobs:
       arbs: ${{ steps.get-stats.outputs.arbs }}
     env:
       DEFAULT_RPC: ${{ secrets.DEFAULT_RPC }}
+      ALT_RPC_LIST: ${{ secrets.ALT_RPC_LIST }}
       GORBAGANA_WALLET_PRIVATE_KEY: ${{ secrets.GORBAGANA_WALLET_PRIVATE_KEY }}
       MAIN_WALLET_ADDRESS: ${{ secrets.MAIN_WALLET_ADDRESS }}
       DEBUG: false
