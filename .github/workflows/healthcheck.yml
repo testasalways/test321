@@ -16,7 +16,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          end_time=$(($(date +%s) + 300))
+          end_time=$(($(date +%s) + 600))
           while [ $(date +%s) -lt $end_time ]; do
             runs=$(gh run list --workflow=test.yml --status=in_progress 2>/dev/null || true)
             if [ -n "$runs" ]; then
