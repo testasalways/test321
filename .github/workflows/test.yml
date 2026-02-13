@@ -32,14 +32,11 @@ jobs:
 
       - run: yarn install --frozen-lockfile
 
-      - uses: actions/cache@v4
-        id: tokens-cache
-        with:
-          path: temp
-          key: gor-tokens-${{ hashFiles('tokens.json') }}
-          restore-keys: gor-tokens-
-
       - run: yarn tokens:discover:from-config
+
+      - run: yarn pools
+      
+      - run: cat temp/tokens.json
 
       - run: yarn trade
 
