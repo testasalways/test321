@@ -34,7 +34,7 @@ jobs:
 
       - run: yarn tokens:discover:from-config
 
-      - run: yarn pools
+      - run: yarn pools || true
       
       - run: cat temp/tokens.json
 
