@@ -6,12 +6,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    outputs:
-      swaps: ${{ steps.get-stats.outputs.swaps }}
-      fails: ${{ steps.get-stats.outputs.fails }}
-      profit: ${{ steps.get-stats.outputs.profit }}
-      transferred: ${{ steps.get-stats.outputs.transferred }}
-      arbs: ${{ steps.get-stats.outputs.arbs }}
     env:
       DEFAULT_RPC: ${{ secrets.DEFAULT_RPC }}
       ALT_RPC_LIST: ${{ secrets.ALT_RPC_LIST }}
