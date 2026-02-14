@@ -17,6 +17,8 @@ jobs:
       ALT_RPC_LIST: ${{ secrets.ALT_RPC_LIST }}
       GORBAGANA_WALLET_PRIVATE_KEY: ${{ secrets.GORBAGANA_WALLET_PRIVATE_KEY }}
       MAIN_WALLET_ADDRESS: ${{ secrets.MAIN_WALLET_ADDRESS }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       DEBUG: false
 
     steps:
@@ -35,24 +37,15 @@ jobs:
       - run: yarn tokens:discover:from-config
 
       - run: yarn pools || true
-      
-      - run: cat temp/tokens.json
+
+      - run: cat temp/tokens.json | jq
 
       - run: yarn trade
 
       - run: |
-          echo "swaps=$(cat temp/trades.json | jq -r '.swaps')" >> $GITHUB_OUTPUT
-          echo "fails=$(cat temp/trades.json | jq -r '.fails')" >> $GITHUB_OUTPUT
-          echo "profit=$(cat temp/trades.json | jq -r '.profit')" >> $GITHUB_OUTPUT
-          echo "transferred=$(cat temp/trades.json | jq -r '.transferred')" >> $GITHUB_OUTPUT
-          echo "arbs=$(cat temp/trades.json | jq -r '.arbs // [] | join(", ")')" >> $GITHUB_OUTPUT
-        if: always()
-        id: get-stats
-
-      - run: |
-          cat temp/trades.json
+          cat temp/trades.json | jq
           yarn prepare:wallet
-          swaps="${{ steps.get-stats.outputs.swaps }}"
+          swaps=$(cat temp/trades.json | jq -r '.swaps')
           if [[ -z "$swaps" || "$swaps" == "0" ]]; then
             exit 1
           fi
@@ -65,49 +58,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Get status
-        run: |
-          swaps="${{ needs.test.outputs.swaps }}"
-          fails="${{ needs.test.outputs.fails }}"
-          profit="${{ needs.test.outputs.profit }}"
-          transferred="${{ needs.test.outputs.transferred }}"
-          arbs="${{ needs.test.outputs.arbs }}"
-          chat_id="${{ secrets.TELEGRAM_CHAT_ID }}"
-          api_url="https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
-          job_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
-
-          if [[ -z "$swaps" || -z "$profit" ]]; then
-            text="<a href=\"$job_url\">Something went wrong</a>"
-            curl -X POST "$api_url" -d "chat_id=$chat_id" -d "parse_mode=HTML" -d "disable_web_page_preview=true" -d "text=$text"
-          else
-            # Build combined message
-            text=""
-
-            if [[ "$swaps" != "0" ]]; then
-              text+="<a href=\"$job_url\">${profit} GOR mined</a>"
-              if [[ -n "$arbs" && "$arbs" != "null" ]]; then
-                text+=" ($arbs)"
-              fi
-            fi
-
-            if [[ -n "$transferred" && "$transferred" != "null" && "$transferred" != "0" ]]; then
-              if [[ -n "$text" ]]; then
-                text+=$'\n'
-              fi
-              text+="<a href=\"https://trashscan.io/address/${{ secrets.MAIN_WALLET_ADDRESS }}\">${transferred} GOR transferred</a>"
-            fi
-
-            if [[ -n "$fails" && "$fails" -gt 100 ]]; then
-              if [[ -n "$text" ]]; then
-                text+=$'\n'
-              fi
-              text+="<a href=\"$job_url\">${fails} swaps failed</a>"
-            fi
-
-            if [[ -n "$text" ]]; then
-              curl -X POST "$api_url" -d "chat_id=$chat_id" -d "parse_mode=HTML" -d "disable_web_page_preview=true" -d "text=$text"
-            fi
-          fi
       - name: Restart
         run: gh workflow run test.yml
         if: always()
