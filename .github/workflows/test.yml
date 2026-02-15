@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  run:
     runs-on: ubuntu-latest
     env:
       DEFAULT_RPC: ${{ secrets.DEFAULT_RPC }}
@@ -26,19 +26,26 @@ jobs:
           node-version: '20'
           cache: 'yarn'
 
-      - run: yarn install --frozen-lockfile
+      - name: yarn install
+        run: yarn install --frozen-lockfile
 
-      - run: yarn tokens:discover:from-config
+      - name: discovery
+        run: |
+          yarn tokens:discover:from-config
+          yarn pools || true
 
-      - run: yarn pools || true
-
-      - run: cat temp/tokens.json | jq
+      - name: tokens.json
+        run: cat temp/tokens.json | jq
 
       - run: yarn trade
 
-      - run: |
-          cat temp/trades.json | jq
-          yarn prepare:wallet
+      - name: trades.json
+        run: cat temp/trades.json | jq
+
+      - run: yarn prepare:wallet
+
+      - name: exit
+        run: |
           swaps=$(cat temp/trades.json | jq -r '.swaps')
           if [[ -z "$swaps" || "$swaps" == "0" ]]; then
             exit 1
@@ -47,12 +54,13 @@ jobs:
 
   restart:
     runs-on: ubuntu-latest
-    needs: test
+    needs: run
     if: always()
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v4
-      - name: Restart
+        
+      - name: restart
         run: gh workflow run test.yml
         if: always()
         env:
