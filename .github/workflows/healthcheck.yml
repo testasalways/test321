@@ -16,22 +16,23 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          end_time=$(($(date +%s) + 600))
+          end_time=$(($(date +%s) + 300))
           while [ $(date +%s) -lt $end_time ]; do
-            runs=$(gh run list --workflow=test.yml --status=in_progress 2>/dev/null || true)
-            if [ -n "$runs" ]; then
-              echo "✅ Test is in progress."
+            runs_in_progress=$(gh run list --workflow=test.yml --status=in_progress 2>/dev/null || true)
+            runs_queued=$(gh run list --workflow=test.yml --status=queued 2>/dev/null || true)
+            if [ -n "$runs_in_progress" ] || [ -n "$runs_queued" ]; then
+              echo "✅ Test is running or queued."
               exit 0
             fi
-            echo "⚠️ No test in progress, waiting 30s..."
+            echo "⚠️ No test in progress or queued, waiting 30s..."
             sleep 30
           done
 
           text="🔴 Test is stuck. Restarting..."
           echo "$text"
           gh workflow run test.yml
-          
+
           job_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           chat_id="${{ secrets.TELEGRAM_CHAT_ID }}"
           api_url="https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
-          curl -s -X POST "$api_url" -d "chat_id=$chat_id" -d "parse_mode=HTML" -d "text=<a href=\"$job_url\">$text</a>"
+          curl -s -X POST "$api_url" -d "chat_id=$chat_id" -d "parse_mode=HTML" -d "disable_web_page_preview=true" -d "text=<a href=\"$job_url\">$text</a>"
