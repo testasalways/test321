@@ -52,7 +52,7 @@ jobs:
 
       - name: exit
         run: |
-          swaps=$(cat temp/trades.json | jq -r '.swaps')
+          trades=$(cat temp/trades.json | jq -r '.trades')
           if [[ -z "$trades" || "$trades" == "0" ]]; then
             exit 1
           fi
