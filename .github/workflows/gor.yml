@@ -30,9 +30,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: discovery
-        run: |
-          yarn tokens:discover:from-config
-          yarn pools || true
+        run: yarn pools || true
 
       - name: tokens.json
         run: cat temp/tokens.json | jq
