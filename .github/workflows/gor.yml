@@ -5,7 +5,12 @@ on:
 
 jobs:
   start:
+    name: start (trashdaq=${{ matrix.useTrashdaq }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        useTrashdaq: [true, false]
     env:
       DEFAULT_RPC: ${{ secrets.DEFAULT_RPC }}
       ALT_RPC_LIST: ${{ secrets.ALT_RPC_LIST }}
@@ -28,6 +33,9 @@ jobs:
 
       - name: yarn install
         run: yarn install --frozen-lockfile
+
+      - name: update config
+        run: jq --argjson td '${{ matrix.useTrashdaq }}' '.useTrashdaq = $td' config.json > tmp && mv tmp config.json
 
       - name: discovery
         run: yarn pools || true
@@ -57,7 +65,7 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
-        
+
       - name: restart
         run: gh workflow run gor.yml
         if: always()
