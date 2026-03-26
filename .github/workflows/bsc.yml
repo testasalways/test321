@@ -9,7 +9,8 @@ jobs:
     env:
       BSC_RPC_URL: ${{ secrets.BSC_RPC_URL }}
       BSC_WALLET_PRIVATE_KEY: ${{ secrets.BSC_WALLET_PRIVATE_KEY }}
-      MAIN_WALLET_ADDRESS: ${{ secrets.BSC_MAIN_WALLET_ADDRESS }}
+      COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
+      # MAIN_WALLET_ADDRESS: ${{ secrets.BSC_MAIN_WALLET_ADDRESS }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
@@ -27,8 +28,8 @@ jobs:
       - name: yarn install
         run: yarn install --frozen-lockfile
 
-      # - name: discovery
-      #   run: yarn pools || true
+      - name: discovery
+        run: yarn pools || true
 
       - name: tokens.json
         run: cat temp/tokens.json | jq
