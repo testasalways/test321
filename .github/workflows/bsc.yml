@@ -28,8 +28,8 @@ jobs:
       - name: yarn install
         run: yarn install --frozen-lockfile
 
-      - name: discovery
-        run: yarn pools || true
+      # - name: discovery
+      #   run: yarn pools || true
 
       - name: tokens.json
         run: cat temp/tokens.json | jq
