@@ -1,0 +1,29 @@
+name: Gor Benchmark
+
+on:
+  workflow_dispatch:
+
+jobs:
+  start:
+    runs-on: ubuntu-latest
+    env:
+      DEFAULT_RPC: ${{ secrets.DEFAULT_RPC }}
+      ALT_RPC_LIST: ${{ secrets.ALT_RPC_LIST }}
+      GORBAGANA_WALLET_PRIVATE_KEY: ${{ secrets.GORBAGANA_WALLET_PRIVATE_KEY }}
+      DEBUG: false
+
+    steps:
+      - uses: actions/checkout@v4.1.1
+        with:
+          repository: ${{ secrets.GOR_BOT_REPO_URL }}
+          token: ${{ secrets.GH_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: yarn install
+        run: yarn install --frozen-lockfile
+
+      - run: yarn bench:tpu 10
