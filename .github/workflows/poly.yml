@@ -1,4 +1,4 @@
-name: Bsc
+name: Poly
 
 on:
   workflow_dispatch:
@@ -7,17 +7,18 @@ jobs:
   start:
     runs-on: ubuntu-latest
     env:
-      BSC_RPC_URL: ${{ secrets.BSC_RPC_URL }}
-      BSC_WALLET_PRIVATE_KEY: ${{ secrets.BSC_WALLET_PRIVATE_KEY }}
-      COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
-      # MAIN_WALLET_ADDRESS: ${{ secrets.BSC_MAIN_WALLET_ADDRESS }}
+      POLYMARKET_PRIVATE_KEY: ${{ secrets.POLYMARKET_PRIVATE_KEY }}
+      POLYMARKET_API_KEY: ${{ secrets.POLYMARKET_API_KEY }}
+      POLYMARKET_API_SECRET: ${{ secrets.POLYMARKET_API_SECRET }}
+      POLYMARKET_API_PASSPHRASE: ${{ secrets.POLYMARKET_API_PASSPHRASE }}
+      POLYMARKET_FUNDER: ${{ secrets.POLYMARKET_FUNDER }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
     steps:
       - uses: actions/checkout@v4.1.1
         with:
-          repository: ${{ secrets.BSC_BOT_REPO_URL }}
+          repository: ${{ secrets.POLY_BOT_REPO_URL }}
           token: ${{ secrets.GH_TOKEN }}
 
       - uses: actions/setup-node@v4
@@ -27,12 +28,6 @@ jobs:
 
       - name: yarn install
         run: yarn install --frozen-lockfile
-
-      # - name: discovery
-      #   run: yarn pools || true
-
-      - name: tokens.json
-        run: cat temp/tokens.json | jq
 
       - run: yarn trade
 
@@ -58,7 +53,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: restart
-        run: gh workflow run bsc.yml
+        run: gh workflow run poly.yml
         if: always()
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
