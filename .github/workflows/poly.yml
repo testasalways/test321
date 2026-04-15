@@ -25,7 +25,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
+
+      - name: Yarn cache
+        uses: actions/cache@v4
+        id: yarn-cache
+        with:
+          path: ~/.cache/yarn
+          key: poly-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            poly-yarn-${{ runner.os }}-
 
       - name: yarn install
         run: yarn install --frozen-lockfile
