@@ -26,7 +26,7 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Yarn cache
+      - name: yarn cache
         uses: actions/cache@v4
         id: yarn-cache
         with:
