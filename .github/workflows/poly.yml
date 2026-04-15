@@ -31,15 +31,11 @@ jobs:
 
       - run: yarn trade
 
-      - name: trades.json
-        run: cat temp/trades.json | jq
-
-      # - run: yarn prepare:wallet
+      - run: cat temp/trades.json | jq
 
       - name: exit
         run: |
-          swaps=$(cat temp/trades.json | jq -r '.swaps')
-          if [[ -z "$swaps" || "$swaps" == "0" ]]; then
+          if ! jq -e 'length > 0' temp/trades.json >/dev/null; then
             exit 1
           fi
         if: always()
