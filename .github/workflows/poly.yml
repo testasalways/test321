@@ -38,6 +38,16 @@ jobs:
       - name: yarn install
         run: yarn install --frozen-lockfile
 
+      - name: Cache airports
+        uses: actions/cache@v4
+        with:
+          path: temp/ourairports-airports.csv
+          key: ourairports-csv-${{ runner.os }}-${{ hashFiles('src/utils/ourairports.js') }}
+          restore-keys: |
+            ourairports-csv-${{ runner.os }}-
+
+      - run: yarn fetch:airports
+
       - run: yarn trade
 
       - run: cat temp/trades.json | jq
