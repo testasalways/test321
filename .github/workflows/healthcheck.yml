@@ -16,6 +16,7 @@ jobs:
         uses: actions/checkout@v4
         
       - name: Check gor run
+        if: always()
         run: |
           end_time=$(($(date +%s) + 300))
           while [ $(date +%s) -lt $end_time ]; do
@@ -39,6 +40,7 @@ jobs:
           curl -s -X POST "$api_url" -d "chat_id=$chat_id" -d "parse_mode=HTML" -d "disable_web_page_preview=true" -d "text=<a href=\"$job_url\">$text</a>"
         
       - name: Check poly run
+        if: always()
         run: |
           end_time=$(($(date +%s) + 300))
           while [ $(date +%s) -lt $end_time ]; do
