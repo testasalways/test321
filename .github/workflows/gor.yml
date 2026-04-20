@@ -7,6 +7,7 @@ jobs:
   start:
     name: start (trashdaq=${{ matrix.useTrashdaq }})
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -27,10 +28,14 @@ jobs:
           repository: ${{ secrets.GOR_BOT_REPO_URL }}
           token: ${{ secrets.GH_TOKEN }}
 
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
       - uses: actions/setup-node@v6
         with:
           node-version: '20'
-          
+
       - name: yarn cache
         uses: actions/cache@v5
         id: yarn-cache
@@ -43,6 +48,15 @@ jobs:
       - name: yarn install
         run: yarn install --frozen-lockfile
 
+      # https://docs.gorbagana.wtf/operating-and-rpc/running-your-rpc-node.html
+      # Stack: https://github.com/gorbagana-dev/gorbagana-rpc (gorchain-rpc)
+      - name: set up rpc
+        env:
+          GORBAGANA_RPC_REPO: https://github.com/gorbagana-dev/gorbagana-rpc.git
+          GORBAGANA_RPC_REF: main
+          HEALTH_TIMEOUT_SECONDS: '600'
+        run: bash "${{ github.workspace }}/rpc/start-rpc.sh"
+        
       - name: update config
         run: jq --argjson td '${{ matrix.useTrashdaq }}' '.useTrashdaq = $td' config.json > tmp && mv tmp config.json
 
