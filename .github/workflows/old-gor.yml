@@ -1,4 +1,4 @@
-name: Gor
+name: Old Gor
 
 on:
   workflow_dispatch:
