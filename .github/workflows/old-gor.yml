@@ -7,7 +7,7 @@ jobs:
   start:
     name: start
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     env:
       DEFAULT_RPC: "http://127.0.0.1:8899"
       GORBAGANA_WALLET_PRIVATE_KEY: ${{ secrets.GORBAGANA_WALLET_PRIVATE_KEY }}
@@ -49,7 +49,7 @@ jobs:
         env:
           GORBAGANA_RPC_REPO: https://github.com/gorbagana-dev/gorbagana-rpc.git
           GORBAGANA_RPC_REF: main
-          HEALTH_TIMEOUT_SECONDS: '600'
+          HEALTH_TIMEOUT_SECONDS: '2400'
         run: bash "${{ github.workspace }}/rpc/start-rpc.sh"
 
       - name: discovery
