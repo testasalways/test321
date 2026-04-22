@@ -7,7 +7,7 @@ jobs:
   start:
     name: start
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 60
     env:
       DEFAULT_RPC: "http://127.0.0.1:8899"
       GORBAGANA_WALLET_PRIVATE_KEY: ${{ secrets.GORBAGANA_WALLET_PRIVATE_KEY }}
@@ -43,13 +43,27 @@ jobs:
       - name: yarn install
         run: yarn install --frozen-lockfile
 
+      # gorchain-stacks git checkout + laconic-so (~/.laconic-so is config only). Bust via rpc/* or branch name.
+      - name: cache gorbagana rpc
+        uses: actions/cache@v5
+        id: gorbagana-rpc-cache
+        with:
+          path: |
+            /home/runner/workspace/gorchain-stacks
+            /home/runner/bin/laconic-so
+            /home/runner/.laconic-so
+          key: gorbagana-rpc-${{ runner.os }}-main-${{ hashFiles('rpc/start-rpc.sh', 'rpc/install-laconic.sh') }}
+          restore-keys: |
+            gorbagana-rpc-${{ runner.os }}-main-
+            gorbagana-rpc-${{ runner.os }}-
+
       # https://docs.gorbagana.wtf/operating-and-rpc/running-your-rpc-node.html
       # Stack: https://github.com/gorbagana-dev/gorbagana-rpc (gorchain-rpc)
       - name: set up rpc
         env:
           GORBAGANA_RPC_REPO: https://github.com/gorbagana-dev/gorbagana-rpc.git
           GORBAGANA_RPC_REF: main
-          HEALTH_TIMEOUT_SECONDS: '2400'
+          HEALTH_TIMEOUT_SECONDS: '1200'
         run: bash "${{ github.workspace }}/rpc/start-rpc.sh"
 
       - name: discovery
@@ -73,16 +87,16 @@ jobs:
           fi
         if: always()
 
-  # restart:
-  #   runs-on: ubuntu-latest
-  #   needs: start
-  #   if: success() || failure()
-  #   steps:
-  #     - name: checkout
-  #       uses: actions/checkout@v4
+  restart:
+    runs-on: ubuntu-latest
+    needs: start
+    if: success() || failure()
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
 
-  #     - name: restart
-  #       run: gh workflow run old-gor.yml
-  #       if: always()
-  #       env:
-  #         GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: restart
+        run: gh workflow run old-gor.yml
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
