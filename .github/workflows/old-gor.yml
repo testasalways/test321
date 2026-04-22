@@ -43,15 +43,6 @@ jobs:
       - name: yarn install
         run: yarn install --frozen-lockfile
 
-      # https://docs.gorbagana.wtf/operating-and-rpc/running-your-rpc-node.html
-      # Stack: https://github.com/gorbagana-dev/gorbagana-rpc (gorchain-rpc)
-      - name: set up rpc
-        env:
-          GORBAGANA_RPC_REPO: https://github.com/gorbagana-dev/gorbagana-rpc.git
-          GORBAGANA_RPC_REF: main
-          HEALTH_TIMEOUT_SECONDS: '600'
-        run: bash "${{ github.workspace }}/rpc/start-rpc.sh"
-
       - name: discovery
         run: yarn pools || true
 
@@ -67,6 +58,13 @@ jobs:
             exit 1
           }
           jq . "$f"
+
+      - name: set up rpc
+        env:
+          GORBAGANA_RPC_REPO: https://github.com/gorbagana-dev/gorbagana-rpc.git
+          GORBAGANA_RPC_REF: main
+          HEALTH_TIMEOUT_SECONDS: '600'
+        run: bash "${{ github.workspace }}/rpc/start-rpc.sh"
 
       - run: yarn trade
 
