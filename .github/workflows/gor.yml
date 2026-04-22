@@ -45,7 +45,17 @@ jobs:
         run: yarn pools || true
 
       - name: tokens.json
-        run: cat temp/tokens.json | jq
+        run: |
+          f=temp/tokens.json
+          if [[ ! -s "$f" ]]; then
+            echo "::error::tokens.json missing or empty file"
+            exit 1
+          fi
+          jq -e 'type == "array" and length > 0' "$f" >/dev/null || {
+            echo "::error::tokens.json must be a non-empty JSON array"
+            exit 1
+          }
+          jq . "$f"
 
       - run: yarn trade
 
