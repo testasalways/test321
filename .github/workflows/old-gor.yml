@@ -91,6 +91,6 @@ jobs:
 
       - name: restart
         run: gh workflow run old-gor.yml
-  #       if: always()
-  #       env:
-  #         GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
