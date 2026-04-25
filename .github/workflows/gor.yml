@@ -23,7 +23,6 @@ jobs:
         with:
           repository: ${{ secrets.GOR_BOT_REPO_URL }}
           token: ${{ secrets.GH_TOKEN }}
-          python-version: '3.13'
 
       - uses: actions/setup-node@v6
         with:
