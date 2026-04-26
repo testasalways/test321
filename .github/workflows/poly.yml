@@ -18,6 +18,7 @@ jobs:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       ORDER_SIZE_USDC: ${{ vars.POLYMARKET_ORDER_SIZE_USDC }}
+      ORDER_SIZE_PERCENTAGE: ${{ vars.POLYMARKET_ORDER_SIZE_PERCENTAGE }}
 
     steps:
       - uses: actions/checkout@v6
