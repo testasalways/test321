@@ -14,15 +14,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-        
+
       - name: Check gor run
         if: always()
         run: |
+          bot="gor"
           end_time=$(($(date +%s) + 300))
           while [ $(date +%s) -lt $end_time ]; do
-            runs_in_progress=$(gh run list --workflow=gor.yml --status=in_progress 2>/dev/null || true)
-            runs_queued=$(gh run list --workflow=gor.yml --status=queued 2>/dev/null || true)
-            if [ -n "$runs_in_progress" ] || [ -n "$runs_queued" ]; then
+            active=$(gh run list -R "$GITHUB_REPOSITORY" -w "${bot}.yml" --json status --jq 'any(.[]; .status != "completed")' 2>/dev/null || echo false)
+            if [ "$active" = "true" ]; then
               echo "✅ Test is running or queued."
               exit 0
             fi
@@ -30,23 +30,23 @@ jobs:
             sleep 30
           done
 
-          text="🔴 Gor is stuck. Restarting..."
+          text="🔴 ${bot} is stuck. Restarting..."
           echo "$text"
-          gh workflow run gor.yml
+          gh workflow run -R "$GITHUB_REPOSITORY" "${bot}.yml"
 
           job_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           chat_id="${{ secrets.TELEGRAM_CHAT_ID }}"
           api_url="https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
           curl -s -X POST "$api_url" -d "chat_id=$chat_id" -d "parse_mode=HTML" -d "disable_web_page_preview=true" -d "text=<a href=\"$job_url\">$text</a>"
-        
+
       - name: Check poly run
         if: always()
         run: |
+          bot="poly"
           end_time=$(($(date +%s) + 300))
           while [ $(date +%s) -lt $end_time ]; do
-            runs_in_progress=$(gh run list --workflow=poly.yml --status=in_progress 2>/dev/null || true)
-            runs_queued=$(gh run list --workflow=poly.yml --status=queued 2>/dev/null || true)
-            if [ -n "$runs_in_progress" ] || [ -n "$runs_queued" ]; then
+            active=$(gh run list -R "$GITHUB_REPOSITORY" -w "${bot}.yml" --json status --jq 'any(.[]; .status != "completed")' 2>/dev/null || echo false)
+            if [ "$active" = "true" ]; then
               echo "✅ Test is running or queued."
               exit 0
             fi
@@ -54,9 +54,9 @@ jobs:
             sleep 30
           done
 
-          text="🔴 Poly is stuck. Restarting..."
+          text="🔴 ${bot} is stuck. Restarting..."
           echo "$text"
-          gh workflow run poly.yml
+          gh workflow run -R "$GITHUB_REPOSITORY" "${bot}.yml"
 
           job_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           chat_id="${{ secrets.TELEGRAM_CHAT_ID }}"
