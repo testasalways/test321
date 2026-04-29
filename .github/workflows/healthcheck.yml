@@ -38,27 +38,3 @@ jobs:
           chat_id="${{ secrets.TELEGRAM_CHAT_ID }}"
           api_url="https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
           curl -s -X POST "$api_url" -d "chat_id=$chat_id" -d "parse_mode=HTML" -d "disable_web_page_preview=true" -d "text=<a href=\"$job_url\">$text</a>"
-
-      - name: Check poly run
-        if: always()
-        run: |
-          bot="poly"
-          end_time=$(($(date +%s) + 300))
-          while [ $(date +%s) -lt $end_time ]; do
-            active=$(gh run list -R "$GITHUB_REPOSITORY" -w "${bot}.yml" --json status --jq 'any(.[]; .status != "completed")' 2>/dev/null || echo false)
-            if [ "$active" = "true" ]; then
-              echo "✅ Test is running or queued."
-              exit 0
-            fi
-            echo "⚠️ No test in progress or queued, waiting 30s..."
-            sleep 30
-          done
-
-          text="🔴 ${bot} is stuck. Restarting..."
-          echo "$text"
-          gh workflow run -R "$GITHUB_REPOSITORY" "${bot}.yml"
-
-          job_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
-          chat_id="${{ secrets.TELEGRAM_CHAT_ID }}"
-          api_url="https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
-          curl -s -X POST "$api_url" -d "chat_id=$chat_id" -d "parse_mode=HTML" -d "disable_web_page_preview=true" -d "text=<a href=\"$job_url\">$text</a>"
