@@ -7,7 +7,7 @@ jobs:
   start:
     name: start
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     env:
       DEFAULT_RPC: ${{ secrets.DEFAULT_RPC }}
       ALT_RPC_LIST: ${{ secrets.ALT_RPC_LIST }}
