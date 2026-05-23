@@ -40,5 +40,6 @@ jobs:
       - name: yarn claim:fees:clmm
         env:
           RPC_URL: ${{ secrets.DEFAULT_RPC }}
+          COOK_OPERATOR_LIVE_JSON: ${{ secrets.COOK_OPERATOR_LIVE_JSON }}
           COOK_TREASURY_LIVE_JSON: ${{ secrets.COOK_TREASURY_LIVE_JSON }}
         run: yarn claim:fees:clmm
