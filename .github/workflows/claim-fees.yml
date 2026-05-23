@@ -2,7 +2,7 @@ name: Claim fees
 
 on:
   schedule:
-    - cron: '0 8 * * *'
+    - cron: '0 10 * * 1'
 
   workflow_dispatch:
 
@@ -14,7 +14,7 @@ jobs:
         with:
           repository: ${{ secrets.GOR_BOT_REPO_URL }}
           token: ${{ secrets.GH_TOKEN }}
-      
+
       - uses: actions/setup-node@v6
         with:
           node-version: '20'
@@ -31,8 +31,14 @@ jobs:
       - name: yarn install
         run: yarn install --frozen-lockfile
 
-      - name: yarn claim:fees
+      - name: yarn claim:fees:damm
         env:
           RPC_URL: ${{ secrets.DEFAULT_RPC }}
           COOK_AUTHORITY_LIVE_JSON: ${{ secrets.COOK_AUTHORITY_LIVE_JSON }}
-        run: yarn claim:fees
+        run: yarn claim:fees:damm
+
+      - name: yarn claim:fees:clmm
+        env:
+          RPC_URL: ${{ secrets.DEFAULT_RPC }}
+          COOK_AUTHORITY_LIVE_JSON: ${{ secrets.COOK_TREASURY_LIVE_JSON }}
+        run: yarn claim:fees:clmm
