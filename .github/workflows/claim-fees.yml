@@ -31,21 +31,22 @@ jobs:
       - name: yarn install
         run: yarn install --frozen-lockfile
 
-      - name: yarn claim:fees:damm
+      - run: yarn claim:fees:damm
         env:
           RPC_URL: ${{ secrets.DEFAULT_RPC }}
           COOK_OPERATOR_LIVE_JSON: ${{ secrets.COOK_OPERATOR_LIVE_JSON }}
-        run: yarn claim:fees:damm
 
-      - name: yarn claim:fees:clmm
+      - run: yarn claim:fees:clmm
         env:
           RPC_URL: ${{ secrets.DEFAULT_RPC }}
           COOK_TREASURY_LIVE_JSON: ${{ secrets.COOK_TREASURY_LIVE_JSON }}
           COOK_OPERATOR_LIVE_JSON: ${{ secrets.COOK_OPERATOR_LIVE_JSON }}
-        run: yarn claim:fees:clmm
 
-      - name: yarn claim:fees:dbc
+      - run: yarn claim:fees:dbc
         env:
           RPC_URL: ${{ secrets.DEFAULT_RPC }}
           COOK_OPERATOR_LIVE_JSON: ${{ secrets.COOK_OPERATOR_LIVE_JSON }}
-        run: yarn claim:fees:dbc
+
+      - name: assets clean up
+        run: |
+          curl -X POST ${{ secrets.ASSETS_CLEANUP_ENDPOINT }} -H "x-ingest-secret: ${{ secrets.TURSO_AUTH_SECRET }}"
