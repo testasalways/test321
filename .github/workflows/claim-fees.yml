@@ -49,4 +49,4 @@ jobs:
 
       - name: assets clean up
         run: |
-          curl -X POST ${{ secrets.ASSETS_CLEANUP_ENDPOINT }} -H "x-ingest-secret: ${{ secrets.TURSO_AUTH_SECRET }}"
+          curl -s -X POST ${{ secrets.ASSETS_CLEANUP_ENDPOINT }} -H "x-ingest-secret: ${{ secrets.TURSO_AUTH_SECRET }}"
