@@ -46,7 +46,3 @@ jobs:
         env:
           RPC_URL: ${{ secrets.DEFAULT_RPC }}
           COOK_OPERATOR_LIVE_JSON: ${{ secrets.COOK_OPERATOR_LIVE_JSON }}
-
-      - name: assets clean up
-        run: |
-          curl -s -X POST ${{ secrets.ASSETS_CLEANUP_ENDPOINT }} -H "x-ingest-secret: ${{ secrets.TURSO_AUTH_SECRET }}"
