@@ -33,6 +33,8 @@ jobs:
 
       - name: yarn install
         run: yarn install --frozen-lockfile
+        
+      - run: yarn tokens
 
       - run: yarn claim:fees:damm
         env:
