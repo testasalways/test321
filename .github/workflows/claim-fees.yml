@@ -12,6 +12,7 @@ jobs:
     env:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      DEFAULT_RPC: ${{ secrets.DEFAULT_RPC }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -33,8 +34,6 @@ jobs:
 
       - name: yarn install
         run: yarn install --frozen-lockfile
-        
-      - run: yarn tokens
 
       - run: yarn claim:fees:damm
         env:
@@ -51,3 +50,17 @@ jobs:
         env:
           RPC_URL: ${{ secrets.DEFAULT_RPC }}
           COOK_OPERATOR_LIVE_JSON: ${{ secrets.COOK_OPERATOR_LIVE_JSON }}
+
+      - run: yarn tokens
+
+      - name: Clean up operator wallet
+        continue-on-error: true
+        env:
+          GORBAGANA_WALLET_PRIVATE_KEY: ${{ secrets.COOK_OPERATOR_LIVE_JSON }}
+        run: yarn swap:all-to-gor
+
+      - name: Clean up treasury wallet
+        continue-on-error: true
+        env:
+          GORBAGANA_WALLET_PRIVATE_KEY: ${{ secrets.COOK_TREASURY_LIVE_JSON }}
+        run: yarn swap:all-to-gor
