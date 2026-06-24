@@ -51,16 +51,14 @@ jobs:
           RPC_URL: ${{ secrets.DEFAULT_RPC }}
           COOK_OPERATOR_LIVE_JSON: ${{ secrets.COOK_OPERATOR_LIVE_JSON }}
 
-      - run: pools:all
+      - run: yarn pools:all
 
-      - name: Clean up operator wallet
+      - run: yarn swap:all-to-gor
         continue-on-error: true
         env:
           GORBAGANA_WALLET_PRIVATE_KEY: ${{ secrets.COOK_OPERATOR_LIVE_JSON }}
-        run: yarn swap:all-to-gor
 
-      - name: Clean up treasury wallet
+      - run: yarn swap:all-to-gor
         continue-on-error: true
         env:
           GORBAGANA_WALLET_PRIVATE_KEY: ${{ secrets.COOK_TREASURY_LIVE_JSON }}
-        run: yarn swap:all-to-gor
