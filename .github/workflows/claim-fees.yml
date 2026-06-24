@@ -56,9 +56,4 @@ jobs:
       - run: yarn swap:all-to-gor
         continue-on-error: true
         env:
-          GORBAGANA_WALLET_PRIVATE_KEY: ${{ secrets.COOK_OPERATOR_LIVE_JSON }}
-
-      - run: yarn swap:all-to-gor
-        continue-on-error: true
-        env:
           GORBAGANA_WALLET_PRIVATE_KEY: ${{ secrets.COOK_TREASURY_LIVE_JSON }}
