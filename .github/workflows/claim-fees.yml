@@ -35,25 +35,27 @@ jobs:
       - name: yarn install
         run: yarn install --frozen-lockfile
 
-      - run: yarn claim:fees:damm
+      - name: claim
+        run: |
+          yarn donation:baseline
+          yarn claim:fees:damm || true
+          yarn claim:fees:clmm || true
+          yarn claim:fees:dbc || true
+          yarn swap:all-to-gor
+
+          # 25% of everything gained since the baseline (claimed COOK + tokens swapped to COOK).
+          COOKIEJAR_DONATION_PERCENTAGE="25"
+          COOKIEJAR_DONATION_AMOUNT="$(yarn --silent donation:amount "$COOKIEJAR_DONATION_PERCENTAGE")"
+          COOKIEJAR_DONATION_MEMO="CookieBox Treasury Contribution (${COOKIEJAR_DONATION_PERCENTAGE}%) - $(date +%F)"
+
+          if [ "$cookiejar_donation_amount" = "0" ]; then
+            echo "Nothing claimed this run — skipping donation."
+          else
+            yarn send:cook "$COOKIEJAR_PUBLIC_ADDRESS" "$COOKIEJAR_DONATION_AMOUNT" "$COOKIEJAR_DONATION_MEMO"
+          fi
         env:
           RPC_URL: ${{ secrets.DEFAULT_RPC }}
           COOK_OPERATOR_LIVE_JSON: ${{ secrets.COOK_OPERATOR_LIVE_JSON }}
-
-      # - run: yarn claim:fees:clmm
-      #   env:
-      #     RPC_URL: ${{ secrets.DEFAULT_RPC }}
-      #     COOK_TREASURY_LIVE_JSON: ${{ secrets.COOK_TREASURY_LIVE_JSON }}
-      #     COOK_OPERATOR_LIVE_JSON: ${{ secrets.COOK_OPERATOR_LIVE_JSON }}
-
-      - run: yarn claim:fees:dbc
-        env:
-          RPC_URL: ${{ secrets.DEFAULT_RPC }}
-          COOK_OPERATOR_LIVE_JSON: ${{ secrets.COOK_OPERATOR_LIVE_JSON }}
-
-      - run: yarn pools:all
-
-      - run: yarn swap:all-to-gor
-        continue-on-error: true
-        env:
+          COOK_TREASURY_LIVE_JSON: ${{ secrets.COOK_TREASURY_LIVE_JSON }}
+          COOKIEJAR_PUBLIC_ADDRESS: ${{ secrets.COOKIEJAR_PUBLIC_ADDRESS }}
           GORBAGANA_WALLET_PRIVATE_KEY: ${{ secrets.COOK_TREASURY_LIVE_JSON }}
