@@ -37,10 +37,23 @@ jobs:
 
       - name: claim
         run: |
-          yarn donation:baseline
-          yarn claim:fees:damm || true
-          yarn claim:fees:clmm || true
-          yarn claim:fees:dbc || true
+          set -eo pipefail
+
+          # On any failure below, alert Telegram and fail the pipeline (preserving the exit code).
+          JOB_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          notify_failure() {
+            status=$?
+            yarn notify:telegram "⚠️ <b>Claim fees pipeline failed</b> — a step exited ${status}. <a href=\"${JOB_URL}\">View run</a>" || true
+            exit "$status"
+          }
+          trap notify_failure ERR
+
+          yarn pools:all
+          # FIRST RUN ONLY: `--zero` donates 25% of the WHOLE balance. Revert to `yarn donation:baseline` after the first transfer.
+          yarn donation:baseline --zero
+          yarn claim:fees:damm
+          yarn claim:fees:clmm
+          yarn claim:fees:dbc
           yarn swap:all-to-gor
 
           # 25% of everything gained since the baseline (claimed COOK + tokens swapped to COOK).
@@ -48,10 +61,13 @@ jobs:
           COOKIEJAR_DONATION_AMOUNT="$(yarn --silent donation:amount "$COOKIEJAR_DONATION_PERCENTAGE")"
           COOKIEJAR_DONATION_MEMO="CookieBox Treasury Contribution (${COOKIEJAR_DONATION_PERCENTAGE}%) - $(date +%F)"
 
-          if [ "$cookiejar_donation_amount" = "0" ]; then
+          if [ "$COOKIEJAR_DONATION_AMOUNT" = "0" ]; then
             echo "Nothing claimed this run — skipping donation."
+            yarn notify:telegram "CookieBox → Cookie Jar donation: <b>0 COOK</b> (nothing claimed this run)"
           else
-            yarn send:cook "$COOKIEJAR_PUBLIC_ADDRESS" "$COOKIEJAR_DONATION_AMOUNT" "$COOKIEJAR_DONATION_MEMO"
+            COOKIEJAR_DONATION_TX="$(yarn --silent send:cook "$COOKIEJAR_PUBLIC_ADDRESS" "$COOKIEJAR_DONATION_AMOUNT" "$COOKIEJAR_DONATION_MEMO")"
+            COOKIEJAR_DONATION_MSG="$(printf '<a href="https://cookiescan.io/tx/%s">View transaction on Cookiescan</a>\nCookieJar contribution: <b>%s COOK</b> (%s%%) to %s' "$COOKIEJAR_DONATION_TX" "$COOKIEJAR_DONATION_AMOUNT" "$COOKIEJAR_DONATION_PERCENTAGE" "$COOKIEJAR_PUBLIC_ADDRESS")"
+            yarn notify:telegram "$COOKIEJAR_DONATION_MSG"
           fi
         env:
           RPC_URL: ${{ secrets.DEFAULT_RPC }}
