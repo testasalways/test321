@@ -49,8 +49,7 @@ jobs:
           trap notify_failure ERR
 
           yarn pools:all
-          # FIRST RUN ONLY: `--zero` donates 25% of the WHOLE balance. Revert to `yarn donation:baseline` after the first transfer.
-          yarn donation:baseline --zero
+          yarn donation:baseline
           yarn claim:fees:damm
           yarn claim:fees:clmm
           yarn claim:fees:dbc
