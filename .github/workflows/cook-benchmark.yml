@@ -1,4 +1,4 @@
-name: Gor Benchmark
+name: Cook Benchmark
 
 on:
   workflow_dispatch:
@@ -27,9 +27,9 @@ jobs:
         id: yarn-cache
         with:
           path: ~/.cache/yarn
-          key: gor-benchmark-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          key: cook-benchmark-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            gor-benchmark-yarn-${{ runner.os }}-
+            cook-benchmark-yarn-${{ runner.os }}-
 
       - name: yarn install
         run: yarn install --frozen-lockfile
