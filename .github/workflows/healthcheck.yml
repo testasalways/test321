@@ -15,10 +15,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Check gor run
+      - name: Check cook run
         if: always()
         run: |
-          bot="gor"
+          bot="cook"
           end_time=$(($(date +%s) + 300))
           while [ $(date +%s) -lt $end_time ]; do
             active=$(gh run list -R "$GITHUB_REPOSITORY" -w "${bot}.yml" --json status --jq 'any(.[]; .status != "completed")' 2>/dev/null || echo false)
