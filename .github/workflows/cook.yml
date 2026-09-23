@@ -1,4 +1,4 @@
-name: Gor
+name: Cook
 
 on:
   workflow_dispatch:
@@ -33,9 +33,9 @@ jobs:
         id: yarn-cache
         with:
           path: ~/.cache/yarn
-          key: gor-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          key: cook-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            gor-yarn-${{ runner.os }}-
+            cook-yarn-${{ runner.os }}-
 
       - name: yarn install
         run: yarn install --frozen-lockfile
@@ -80,7 +80,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: restart
-        run: gh workflow run gor.yml
+        run: gh workflow run cook.yml
         if: always()
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
